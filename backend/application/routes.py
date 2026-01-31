@@ -128,7 +128,9 @@ def create_post():
 
     post = Post(
         user_id=current_user.id,
-        content=content
+        created_at = db.func.now(),
+        content=content,
+        likes=0
     )
     db.session.add(post)
     db.session.commit()
@@ -136,6 +138,8 @@ def create_post():
     return jsonify(
         id=str(post.id),
         user_id=str(post.user_id),
+        likes=str(post.likes),
+        created_at=str(post.created_at),
         content=post.content
     ), 201
 
@@ -155,3 +159,10 @@ def delete_post(post_id):
     db.session.commit()
 
     return jsonify(message="Post deleted successfully"), 200
+
+
+
+
+# @app.route('/post/<int:post_id>/like', methods=["POST"])
+# @jwt_required()
+# def like_post()
