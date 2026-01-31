@@ -1,5 +1,5 @@
 from flask import current_app as app, jsonify, request, abort
-from application.models import User, Post
+from application.models import User, Post, Comments
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, current_user
 
@@ -103,12 +103,28 @@ def get_posts():
     posts_list = [
         {
             "id": str(post.id),
+            "created_at": post.created_at.isoformat(), 
+            "likes": post.likes,
             "user": {
                 "id": str(post.user.id),
                 "firstname": post.user.firstname,
                 "lastname": post.user.lastname,
-                "email": post.user.email
+                "email": post.user.email,
             },
+
+            "comments": [
+                    {
+                        "id": str(comment.id),
+                        "user" : {
+                            "id": str(comment.user.id),
+                            "firstname": comment.user.firstname,
+                            "lastname": comment.user.lastname,
+                            "email": comment.user.email
+                        },
+                        "content": comment.content
+                    } for comment in post.comments
+            ],
+            
             "content": post.content
         }
         for post in posts
@@ -162,6 +178,34 @@ def delete_post(post_id):
 
 
 
+
+@app.route('/post/<int:post_id>/comment', methods=["POST"])
+@jwt_required()
+def comment_post(post_id):
+    content = request.json.get("content", None)
+
+    if not content or content.strip() == "":
+        return jsonify(message="Comment content cannot be empty"), 400
+
+    post  = Post.query.get(post_id)
+    if not post:
+        return jsonify(message="Post not found"), 404
+    
+    comment = Comments(
+        post_id = post_id,
+        user_id = current_user.id,
+        content = content
+    )
+
+    db.session.add(comment)
+    db.session.commit()
+
+    return jsonify(
+        id = str(comment.id),
+        post_id = str(comment.post_id),
+        user_id = str(comment.user_id),
+        content = comment.content
+    )
 
 # @app.route('/post/<int:post_id>/like', methods=["POST"])
 # @jwt_required()
