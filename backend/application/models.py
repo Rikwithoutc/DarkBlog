@@ -31,7 +31,7 @@ class Comments(db.Model):
     post = db.relationship('Post', backref=db.backref('comments', lazy=True))
     user = db.relationship('User', backref=db.backref('comments', lazy=True))
 
-class Like(db.Model):
+class Likes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey("post.id"), nullable=False)
