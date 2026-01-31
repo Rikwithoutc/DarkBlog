@@ -21,6 +21,12 @@ def login():
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
+    if not email or not password:
+        return jsonify({"message": "Please fill all the fields"}), 400 
+    
+    if '@' not in email:
+        return jsonify({"message": "Invalid email address"}), 400
+
     user = User.query.filter_by(email=email).one_or_none()
     if not user or user.password != password:
         return jsonify({"message": "Incorrect email or password"}), 401
@@ -36,6 +42,18 @@ def register():
     lastname = request.json.get("lastname", None)
     email = request.json.get("email", None)
     password = request.json.get("password", None)
+
+    if not firstname or not lastname or not email or not password:
+        return jsonify({"message": "Please fill all the fields"}), 400 
+
+    if firstname.strip() == "" or lastname.strip() == "" or email.strip() == "" or password.strip() == "": 
+        return jsonify({"message": "Fields cannot be empty"}), 400
+    
+    if len(firstname) <= 2 and len(lastname) <= 2:
+        return jsonify({"message" : "fisrtname and lastname must be atleast 3 characters long"}), 400
+    
+    if '@' not in email:
+        return jsonify({"message": "Invalid email address"}), 400
 
     user = User.query.filter_by(email=email).one_or_none()
 
