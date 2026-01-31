@@ -34,6 +34,11 @@ def login():
     access_token = create_access_token(identity=user)
     return jsonify(access_token=access_token), 200
 
+@app.route('/logout', methods=["POST"])
+@jwt_required()
+def logout():
+    return jsonify(message="Logged out successfully"), 200
+
 
 
 @app.route('/register', methods=["POST"])
@@ -90,19 +95,63 @@ def profile():
     ), 200
 
 
-# @app.route("/who_am_i")
-# @jwt_required()
-# def who_am_i():
-#     user = current_user
-#     return jsonify(
-#         id=str(user.id),
-#         firstname=user.firstname,
-#         lastname=user.lastname,
-#         email=user.email,
-#     )
+
+@app.route('/posts', methods=["GET"])
+@jwt_required()
+def get_posts():
+    posts = Post.query.all()
+    posts_list = [
+        {
+            "id": str(post.id),
+            "user": {
+                "id": str(post.user.id),
+                "firstname": post.user.firstname,
+                "lastname": post.user.lastname,
+                "email": post.user.email
+            },
+            "content": post.content
+        }
+        for post in posts
+    ]
+
+    return jsonify(posts_list), 200
 
 
-# @app.route("/admin_only")
-# @role_required('admin')
-# def admin_endpoint():
-#     return jsonify(message="Welcome, admin!"), 200
+
+@app.route('/create_post', methods=["POST"])
+@jwt_required()
+def create_post():
+    content = request.json.get("content", None)
+
+    if not content or content.strip() == "":
+        return jsonify({"message": "Post content cannot be empty"}), 400 
+
+    post = Post(
+        user_id=current_user.id,
+        content=content
+    )
+    db.session.add(post)
+    db.session.commit()
+
+    return jsonify(
+        id=str(post.id),
+        user_id=str(post.user_id),
+        content=post.content
+    ), 201
+
+
+@app.route('/delete_post/<int:post_id>', methods=["DELETE"])
+@jwt_required()
+def delete_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(message="Post not found"), 404
+    
+    if post.user.id != current_user.id and not current_user.is_admin:
+        return jsonify(message="Unauthorized"), 403
+    
+    db.session.delete(post)
+    db.session.commit()
+
+    return jsonify(message="Post deleted successfully"), 200
