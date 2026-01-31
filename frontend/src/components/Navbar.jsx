@@ -1,8 +1,8 @@
-import { LogIn, Menu, X } from "lucide-react";
+import { LogIn, LogOut, Menu, X } from "lucide-react";
 import React, { useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ isLoggedIn }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -17,6 +17,12 @@ const Navbar = () => {
     } else {
       navigate(`/#${id}`);
     }
+  };
+
+  // handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("accessToken");
+    window.location.href = "/";
   };
 
   return (
@@ -56,7 +62,7 @@ const Navbar = () => {
         </div>
 
         {/* Right section */}
-        <div className="flex items-center gap-4">
+        {!isLoggedIn && <div className="flex items-center gap-4">
           {location.pathname === "/" && (
             <>
               <Link to="/log-in">
@@ -81,7 +87,28 @@ const Navbar = () => {
           >
             {open ? <X size={26} /> : <Menu size={26} />}
           </button>
-        </div>
+        </div>}
+
+        {isLoggedIn && <div className="flex items-center gap-4">
+          {location.pathname === "/" && (
+            <>
+              <Link to="/log-out">
+                <button onClick={handleLogout} className="hidden sm:flex items-center gap-2 text-white hover:text-cyan-400 font-semibold transition-all duration-300 hover:translate-x-1 group">
+                  <LogOut size={20} className="group-hover:rotate-12 transition-transform duration-300" />
+                  <span>Log Out</span>
+                </button>
+              </Link>
+            </>
+          )}
+
+          {/* Hamburger button */}
+          <button
+            onClick={() => setOpen(!open)}
+            className="md:hidden text-white hover:text-cyan-400 transition-all duration-300 hover:rotate-90"
+          >
+            {open ? <X size={26} /> : <Menu size={26} />}
+          </button>
+        </div>}
       </div>
 
       {/* Mobile / Tablet Menu */}

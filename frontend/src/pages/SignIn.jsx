@@ -28,7 +28,7 @@ const SignIn = ({ onBack }) => {
     // fetch user data
     const user = await postSignIn(formData);
     console.log("User Data:", user);
-    
+
     if (user.email) {
       toast.success("Account created successfully!");
       const timer = setTimeout(() => {

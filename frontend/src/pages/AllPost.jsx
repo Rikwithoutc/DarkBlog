@@ -1,11 +1,33 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
+import { getProfile } from "../service/useServices";
 
 const Posts = () => {
   const [likedPosts, setLikedPosts] = useState({});
   const [hoveredPostId, setHoveredPostId] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isPostInputFocused, setIsPostInputFocused] = useState(false);
+
+  // fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const user = await getProfile();
+        console.log("Logged in user profile:", user);
+        if (user.msg) {
+          setIsLoggedIn(false);
+        } else {
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const samplePosts = [
     {
@@ -68,14 +90,74 @@ const Posts = () => {
           className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 border border-purple-800/50 rounded-xl p-6 mb-12 text-center hover:border-purple-700/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-500 animate-fade-in-slow hover:scale-105"
           style={{ animationDelay: "0.1s" }}
         >
-          <p className="text-gray-400">
-            <Link to="/sign-in">
-              <span className="text-purple-400 font-medium cursor-pointer hover:text-purple-300 hover:underline transition-all duration-300 inline-block hover:scale-110">
-                Sign in
-              </span>
-            </Link>{" "}
-            to create a post and join the conversation.
-          </p>
+          {/* if loggedIn */}
+          {/* Post Creation Box */}
+          {isLoggedIn && (
+            <div
+              className="bg-gradient-to-br from-purple-900/30 to-pink-900/30 border border-purple-700/60 rounded-2xl p-8 mb-12 hover:border-purple-600/80 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-500 animate-fade-in-slow backdrop-blur-sm"
+              style={{ animationDelay: "0.1s" }}
+            >
+              <div className="flex items-start gap-4 mb-6">
+                <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg shadow-purple-500/50 group-hover:scale-110 transition-transform duration-300 mt-2">
+                  <span>U</span>
+                </div>
+                <textarea
+                  placeholder="What's on your mind?"
+                  onFocus={() => setIsPostInputFocused(true)}
+                  onBlur={() => setIsPostInputFocused(false)}
+                  className={`flex-1 bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-2xl px-5 py-4 focus:outline-none focus:border-purple-500/80 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all duration-300 text-base resize-none ${isPostInputFocused ? "min-h-24" : "min-h-12"}`}
+                />
+              </div>
+              {isPostInputFocused && (
+                <div className="flex items-center justify-between animate-fade-in-slow">
+                  <div className="flex items-center gap-3 text-gray-400">
+                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                      🎨
+                    </button>
+                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                      📸
+                    </button>
+                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                      😊
+                    </button>
+                  </div>
+                  <button className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95">
+                    Post
+                  </button>
+                </div>
+              )}
+              {!isPostInputFocused && (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-gray-400 text-sm">
+                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                      🎨
+                    </span>
+                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                      📸
+                    </span>
+                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                      😊
+                    </span>
+                  </div>
+                  <button className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95">
+                    Post
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* if not isLoggedIn */}
+          {!isLoggedIn && (
+            <p className="text-gray-400">
+              <Link to="/sign-in">
+                <span className="text-purple-400 font-medium cursor-pointer hover:text-purple-300 hover:underline transition-all duration-300 inline-block hover:scale-110">
+                  Sign in
+                </span>
+              </Link>{" "}
+              to create a post and join the conversation.
+            </p>
+          )}
         </div>
 
         {/* Page Title */}

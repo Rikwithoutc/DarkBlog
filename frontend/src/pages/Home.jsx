@@ -1,25 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Hero from '../components/Hero';
-import About from '../components/About';
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import Hero from "../components/Hero";
+import About from "../components/About";
+import { getProfile } from "../service/useServices";
 
 function App() {
   const [isVisible, setIsVisible] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     setIsVisible(true);
   }, []);
 
+  // fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const user = await getProfile();
+        console.log("Logged in user profile:", user);
+        if (user.msg) {
+          setIsLoggedIn(false);
+        } else {
+          setIsLoggedIn(true);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
   return (
-    <div className={`min-h-screen bg-[#0a0a0a] transition-opacity duration-1000 ease-in-out ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
-      <Navbar />
-      
+    <div
+      className={`min-h-screen bg-[#0a0a0a] transition-opacity duration-1000 ease-in-out ${isVisible ? "opacity-100" : "opacity-0"}`}
+    >
+      <Navbar isLoggedIn={isLoggedIn} />
+
       <main>
         <Hero />
-        
+
         {/* Visual Divider */}
         <div className="h-px w-full bg-gradient-to-r from-transparent via-zinc-800 to-transparent hover:via-zinc-700 transition-all duration-500" />
-        
+
         <About />
       </main>
 

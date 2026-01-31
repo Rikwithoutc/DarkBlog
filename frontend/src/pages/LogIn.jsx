@@ -26,17 +26,16 @@ const LoginPage = ({ onBack }) => {
     const user = await postLogin(formData);
     console.log("User logged in:", user);
 
-    if(user.access_token){
+    if (user.access_token) {
+      localStorage.setItem("accessToken", user.access_token);
       toast.success("Logged in successfully!");
-      // const timer = setTimeout(() => {
-      //   window.location.href = "/all-post";
-      // }, 1500);
-      
-    }
-    else {
+      const timer = setTimeout(() => {
+        window.location.href = "/all-post";
+      }, 1500);
+    } else {
       toast.error(user.message || "Login failed. Please try again.");
     }
-  }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-7 relative overflow-hidden animate-page-fade">
