@@ -9,6 +9,12 @@ const Posts = () => {
   const [hoveredPostId, setHoveredPostId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isPostInputFocused, setIsPostInputFocused] = useState(false);
+  const [postContent, setPostContent] = useState("");
+
+  const handleChange = (e) => {
+    setPostContent(e.target.value);
+    console.log("Post content:", e.target.value);
+  };
 
   // fetch user profile
   useEffect(() => {
@@ -105,6 +111,7 @@ const Posts = () => {
                   placeholder="What's on your mind?"
                   onFocus={() => setIsPostInputFocused(true)}
                   onBlur={() => setIsPostInputFocused(false)}
+                  onChange={handleChange}
                   className={`flex-1 bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-2xl px-5 py-4 focus:outline-none focus:border-purple-500/80 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all duration-300 text-base resize-none ${isPostInputFocused ? "min-h-24" : "min-h-12"}`}
                 />
               </div>
