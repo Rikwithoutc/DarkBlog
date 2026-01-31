@@ -52,3 +52,26 @@ export const getProfile = async () => {
   const user = await response.json();
   return user;
 };
+
+export const getAllPosts = async () => {};
+
+export const createPost = async (postData) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/posts`, {  
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify(postData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error creating post:", errorData);
+      throw new Error(errorData.msg || "Failed to create post");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error during post creation:", error);
+  }
+};

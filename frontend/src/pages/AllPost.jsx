@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
-import { getProfile } from "../service/useServices";
+import { createPost, getProfile } from "../service/useServices";
 
 const Posts = () => {
   const [likedPosts, setLikedPosts] = useState({});
@@ -13,7 +13,17 @@ const Posts = () => {
 
   const handleChange = (e) => {
     setPostContent(e.target.value);
-    console.log("Post content:", e.target.value);
+    // console.log("Post content:", e.target.value);
+  };
+
+  const handlePost = async () => {
+    console.log("Posting content:", postContent);
+    // Here you would typically call a service to create the post
+    const postData = await createPost({ content: postContent });
+    console.log("Post created:", postData);
+    // Clear the input after posting
+    setPostContent("");
+    setIsPostInputFocused(false);
   };
 
   // fetch user profile
@@ -146,7 +156,10 @@ const Posts = () => {
                       😊
                     </span>
                   </div>
-                  <button className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95">
+                  <button
+                    onClick={handlePost}
+                    className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
+                  >
                     Post
                   </button>
                 </div>
