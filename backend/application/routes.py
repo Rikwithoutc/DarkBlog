@@ -60,6 +60,17 @@ def register():
 
 
 
+@app.route('/profile', methods=["GET"])
+@jwt_required()
+def profile():
+    user = current_user
+    return jsonify(
+        id=str(user.id),
+        firstname=user.firstname,
+        lastname=user.lastname,
+        email=user.email,
+    ), 200
+
 
 # @app.route("/who_am_i")
 # @jwt_required()
