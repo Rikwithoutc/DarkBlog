@@ -31,12 +31,14 @@ class Comments(db.Model):
     post = db.relationship('Post', backref=db.backref('comments', lazy=True))
     user = db.relationship('User', backref=db.backref('comments', lazy=True))
 
-class Likes(db.Model):
+class Like(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    post_id = db.Column(db.Integer, db.ForeignKey('post.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    post_id = db.Column(db.Integer, db.ForeignKey("post.id"), nullable=False)
 
-
+    __table_args__ = (
+        db.UniqueConstraint("user_id", "post_id"),
+    )
 
 
 

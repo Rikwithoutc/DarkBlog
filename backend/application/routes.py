@@ -1,5 +1,5 @@
 from flask import current_app as app, jsonify, request, abort
-from application.models import User, Post, Comments
+from application.models import User, Post, Comments, Like
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, current_user
 
@@ -105,6 +105,7 @@ def get_posts():
             "id": str(post.id),
             "created_at": post.created_at.isoformat(), 
             "likes": post.likes,
+            "liked_by_me" : Like.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None,
             "user": {
                 "id": str(post.user.id),
                 "firstname": post.user.firstname,
@@ -207,6 +208,25 @@ def comment_post(post_id):
         content = comment.content
     )
 
-# @app.route('/post/<int:post_id>/like', methods=["POST"])
-# @jwt_required()
-# def like_post()
+@app.route('/post/<int:post_id>/like', methods=["POST"])
+@jwt_required()
+def like_post(post_id):
+    post = Post.query.get(post_id)
+    if not post:
+        return jsonify(message="Post not found"), 404
+    
+    existing_like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+    if existing_like:
+        return jsonify(message="You have already liked this post"), 400
+    
+    like = Like(
+        user_id = current_user.id,
+        post_id = post_id
+    )
+
+    post.likes += 1
+
+    db.session.add(like)
+    db.session.commit()
+
+    return jsonify(message="Post liked successfully"), 200
