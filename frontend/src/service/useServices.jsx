@@ -53,11 +53,18 @@ export const getProfile = async () => {
   return user;
 };
 
-export const getAllPosts = async () => {};
+export const getAllPosts = async () => {
+  const response = await fetch(`${BACKEND_URL}/posts`, {
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+    },
+  });
+  return await response.json();
+};
 
 export const createPost = async (postData) => {
   try {
-    const response = await fetch(`${BACKEND_URL}/posts`, {  
+    const response = await fetch(`${BACKEND_URL}/create_post`, {  
       method: "POST",
       headers: {
         "Content-Type": "application/json",
