@@ -3,6 +3,7 @@ from application.config import LocalDevelopmentConfig
 from application.database import db
 from application.models import User, Post
 from application.security import jwt
+from flask_cors import CORS
 
 app = None
 
@@ -16,6 +17,10 @@ def create_app():
 
 
 app = create_app()
+
+CORS(app,
+     supports_credentials=True,
+     origins=["http://localhost:5173"])
 
 from application.routes import *
 
