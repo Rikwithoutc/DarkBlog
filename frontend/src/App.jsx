@@ -1,0 +1,22 @@
+import React from "react";
+import { Route, Routes } from "react-router-dom";
+import Home from "./pages/Home";
+import SignIn from "./pages/SignIn";
+import LoginPage from "./pages/LogIn";
+import Posts from "./pages/AllPost";
+import SplineComponent from "./components/Spline";
+
+const App = () => {
+  return (
+    <div>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/sign-in" element={<SignIn />} />
+        <Route path="/log-in" element={<LoginPage />} />
+        <Route path="/all-post" element={<Posts />} />
+      </Routes>
+    </div>
+  );
+};
+
+export default App;
