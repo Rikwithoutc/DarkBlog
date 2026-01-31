@@ -1,5 +1,5 @@
 from flask import current_app as app, jsonify, request, abort
-from application.models import User, Post, Comments, Like
+from application.models import User, Post, Comments, Likes
 from application.database import db
 from flask_jwt_extended import create_access_token, jwt_required, current_user
 
@@ -105,7 +105,7 @@ def get_posts():
             "id": str(post.id),
             "created_at": post.created_at.isoformat(), 
             "likes": post.likes,
-            "liked_by_me" : Like.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None,
+            "liked_by_me" : Likes.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None,
             "user": {
                 "id": str(post.user.id),
                 "firstname": post.user.firstname,
@@ -215,11 +215,11 @@ def like_post(post_id):
     if not post:
         return jsonify(message="Post not found"), 404
     
-    existing_like = Like.query.filter_by(user_id=current_user.id, post_id=post_id).first()
+    existing_like = Likes.query.filter_by(user_id=current_user.id, post_id=post_id).first()
     if existing_like:
         return jsonify(message="You have already liked this post"), 400
     
-    like = Like(
+    like = Likes(
         user_id = current_user.id,
         post_id = post_id
     )
