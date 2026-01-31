@@ -1,9 +1,43 @@
 import React, { useState } from "react";
 import { LogIn, Mail, Lock, User, ArrowLeft } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
+import { postSignIn } from "../service/useServices";
+import toast from "react-hot-toast";
 
 const SignIn = ({ onBack }) => {
   const [focusedField, setFocusedField] = useState(null);
+  const [formData, setFormData] = useState({
+    firstname: "",
+    lastname: "",
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Form Data Submitted:", formData);
+
+    // fetch user data
+    const user = await postSignIn(formData);
+    console.log("User Data:", user);
+    
+    if (user.email) {
+      toast.success("Account created successfully!");
+      const timer = setTimeout(() => {
+        window.location.href = "/log-in";
+      }, 1500);
+    } else {
+      toast.error(user.message || "Sign in failed. Please try again.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-7 relative overflow-hidden animate-page-fade">
@@ -33,84 +67,109 @@ const SignIn = ({ onBack }) => {
             <h2 className="text-3xl font-bold text-white mb-2 animate-fade-in-slow">
               Create Account
             </h2>
-            <p className="text-gray-400 animate-fade-in-slow" style={{ animationDelay: "0.1s" }}>Join the DarkBlog community today.</p>
+            <p
+              className="text-gray-400 animate-fade-in-slow"
+              style={{ animationDelay: "0.1s" }}
+            >
+              Join the DarkBlog community today.
+            </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Name Row */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2 animate-fade-in-slow" style={{ animationDelay: "0.2s" }}>
+              <div
+                className="space-y-2 animate-fade-in-slow"
+                style={{ animationDelay: "0.2s" }}
+              >
                 <label className="text-sm text-gray-300 ml-1">First Name</label>
                 <div className="relative">
                   <User
-                    className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === 'fname' ? 'text-cyan-400 scale-110' : 'text-zinc-500'}`}
+                    className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === "fname" ? "text-cyan-400 scale-110" : "text-zinc-500"}`}
                     size={18}
                   />
                   <input
                     type="text"
                     name="firstname"
                     placeholder="John"
-                    onFocus={() => setFocusedField('fname')}
+                    onFocus={() => setFocusedField("fname")}
                     onBlur={() => setFocusedField(null)}
+                    onChange={handleChange}
                     className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                   />
                 </div>
               </div>
-              <div className="space-y-2 animate-fade-in-slow" style={{ animationDelay: "0.3s" }}>
+
+              <div
+                className="space-y-2 animate-fade-in-slow"
+                style={{ animationDelay: "0.3s" }}
+              >
                 <label className="text-sm text-gray-300 ml-1">Last Name</label>
                 <input
                   type="text"
                   name="lastname"
                   placeholder="Doe"
-                  onFocus={() => setFocusedField('lname')}
+                  onFocus={() => setFocusedField("lname")}
                   onBlur={() => setFocusedField(null)}
+                  onChange={handleChange}
                   className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                 />
               </div>
             </div>
 
             {/* Email Field */}
-            <div className="space-y-2 animate-fade-in-slow" style={{ animationDelay: "0.4s" }}>
+            <div
+              className="space-y-2 animate-fade-in-slow"
+              style={{ animationDelay: "0.4s" }}
+            >
               <label className="text-sm text-gray-300 ml-1">
                 Email Address
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === 'email' ? 'text-cyan-400 scale-110' : 'text-zinc-500'}`}
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === "email" ? "text-cyan-400 scale-110" : "text-zinc-500"}`}
                   size={18}
                 />
                 <input
                   type="email"
                   name="email"
                   placeholder="name@example.com"
-                  onFocus={() => setFocusedField('email')}
+                  onFocus={() => setFocusedField("email")}
                   onBlur={() => setFocusedField(null)}
+                  onChange={handleChange}
                   className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                 />
               </div>
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2 animate-fade-in-slow" style={{ animationDelay: "0.5s" }}>
+            <div
+              className="space-y-2 animate-fade-in-slow"
+              style={{ animationDelay: "0.5s" }}
+            >
               <label className="text-sm text-gray-300 ml-1">Password</label>
               <div className="relative">
                 <Lock
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === 'password' ? 'text-cyan-400 scale-110' : 'text-zinc-500'}`}
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 transition-all duration-300 ${focusedField === "password" ? "text-cyan-400 scale-110" : "text-zinc-500"}`}
                   size={18}
                 />
                 <input
                   type="password"
                   name="password"
                   placeholder="••••••••"
-                  onFocus={() => setFocusedField('password')}
+                  onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}
+                  onChange={handleChange}
                   className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                 />
               </div>
             </div>
 
             {/* Submit Button */}
-            <button className="w-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-zinc-900 font-bold py-4 rounded-xl mt-6 flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 animate-fade-in-slow" style={{ animationDelay: "0.6s" }}>
+            <button
+              className="w-full bg-gradient-to-r from-cyan-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-zinc-900 font-bold py-4 rounded-xl mt-6 flex items-center justify-center gap-2 transition-all duration-300 transform hover:scale-[1.02] active:scale-95 shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 animate-fade-in-slow"
+              style={{ animationDelay: "0.6s" }}
+            >
               <LogIn size={20} />
               Get Started
             </button>

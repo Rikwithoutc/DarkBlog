@@ -1,9 +1,42 @@
 import React, { useState } from "react";
 import { LogIn, Mail, Lock, ArrowLeft, Github } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
+import toast from "react-hot-toast";
+import { postLogin } from "../service/useServices";
 
 const LoginPage = ({ onBack }) => {
   const [focusedField, setFocusedField] = useState(null);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    console.log("Form Data Submitted:", formData);
+
+    // Add your login logic here
+    const user = await postLogin(formData);
+    console.log("User logged in:", user);
+
+    if(user.access_token){
+      toast.success("Logged in successfully!");
+      // const timer = setTimeout(() => {
+      //   window.location.href = "/all-post";
+      // }, 1500);
+      
+    }
+    else {
+      toast.error(user.message || "Login failed. Please try again.");
+    }
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-7 relative overflow-hidden animate-page-fade">
@@ -41,7 +74,7 @@ const LoginPage = ({ onBack }) => {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => e.preventDefault()}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Email Field */}
             <div
               className="space-y-2 animate-fade-in-slow"
@@ -65,6 +98,7 @@ const LoginPage = ({ onBack }) => {
                   placeholder="name@example.com"
                   onFocus={() => setFocusedField("email")}
                   onBlur={() => setFocusedField(null)}
+                  onChange={handleChange}
                   className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                 />
               </div>
@@ -96,6 +130,7 @@ const LoginPage = ({ onBack }) => {
                   placeholder="••••••••"
                   onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}
+                  onChange={handleChange}
                   className="w-full bg-zinc-800/50 border border-zinc-700 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-cyan-500 focus:bg-zinc-800/80 transition-all duration-300 placeholder:text-zinc-600 hover:border-zinc-600"
                 />
               </div>
