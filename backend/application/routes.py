@@ -229,3 +229,22 @@ def like_post(post_id):
     db.session.commit()
 
     return jsonify(message="Post liked successfully"), 200
+
+
+@app.route('/post/<int:post_id>/unlike', methods=["POST"])
+@jwt_required()
+def unlike_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(message="Post not found"), 404
+    
+    existing_like = Likes.query.filter_by(user_id=current_user.id, post_id=post.id).first()
+
+    if not existing_like:
+        return jsonify(message="You have not liked this post"), 409
+    
+    db.session.delete()
+    db.session.commit()
+
+    return jsonify(message="Post unliked successfully"), 200
