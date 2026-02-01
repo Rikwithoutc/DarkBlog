@@ -1,4 +1,4 @@
-# Bloggu
+# Bloggy
 
 A modern, full-stack blogging platform built with React and Flask. Bloggy allows users to create, share, and interact with blog posts in a beautiful dark-themed interface with real-time engagement features.
 
