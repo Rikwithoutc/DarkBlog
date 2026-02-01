@@ -117,7 +117,7 @@ Bloggy/
 
 3. **Set up environment variables** (create `.env` file in frontend root)
    ```
-   VITE_API_URL=http://localhost:5000
+   VITE_BACKEND_URL=http://127.0.0.1:5000
    ```
 
 4. **Start the development server**
