@@ -20,6 +20,7 @@ const Posts = () => {
   const [allPosts, setAllPosts] = useState([]);
   const [openCommentPostId, setOpenCommentPostId] = useState(null); // added
   const [commentContent, setCommentContent] = useState({}); // added
+  const [userName, setUserName] = useState(null); // added
 
   // New: control how many posts are visible (show first 10 by default)
   const [visibleCount, setVisibleCount] = useState(10);
@@ -51,7 +52,13 @@ const Posts = () => {
       try {
         const posts = await getAllPosts();
         console.log("Fetched posts:", posts);
-        setAllPosts(posts);
+        if(!posts.msg){
+          setIsLoggedIn(true);
+          setAllPosts(posts);
+        }
+        else{
+          setIsLoggedIn(false);
+        }
       } catch (err) {
         console.error(err);
       }
@@ -69,6 +76,7 @@ const Posts = () => {
         if (user.msg) {
           setIsLoggedIn(false);
         } else {
+          setUserName(user.firstname);
           setIsLoggedIn(true);
         }
       } catch (err) {
@@ -183,7 +191,7 @@ const Posts = () => {
             >
               <div className="flex items-start gap-4 mb-6">
                 <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold flex-shrink-0 shadow-lg shadow-purple-500/50 group-hover:scale-110 transition-transform duration-300 mt-2">
-                  <span>U</span>
+                  <span>{userName?.charAt(0).toUpperCase() || "U"}</span>
                 </div>
                 <textarea
                   placeholder="What's on your mind?"
@@ -383,7 +391,7 @@ const Posts = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-cyan-400 font-semibold text-sm hover:underline cursor-pointer">
-                                  {comment.user.firstname}
+                                  {comment.user.firstname} {comment.user.lastname}
                                 </span>
                                 <span className="text-xs text-zinc-500">
                                   {formatRelativeTime(comment.commented_at)}
