@@ -47,11 +47,12 @@ Bloggy/
 ├── backend/                # Flask application
 │   ├── application/
 │   │   ├── config.py      # Configuration
-│   │   ├── models/        # Database models
-│   │   ├── routes/        # API routes
-│   │   └── __init__.py
+│   │   ├── models.py      # Database models
+│   │   ├── routes.py      # API routes
+│   │   |── databse.py     # Iniitializes database
+|   |   └── security.py    # Handles JWT Access Tokens
 │   ├── requirements.txt
-│   └── run.py
+│   └── app.py
 └── README.md
 ```
 
@@ -91,15 +92,15 @@ Bloggy/
 
 5. **Set up environment variables** (create `.env` file)
    ```
-   SECRET_KEY=your-secret-key
-   JWT_SECRET_KEY=your-jwt-secret-key
+   SECRET_KEY=super-secret-dev-key
+   JWT_SECRET_KEY=super-jwt-dev-key
    DATABASE_URL=sqlite:///blog.db
-   FLASK_ENV=development
+   FRONTEND_URL=http://localhost:5173
    ```
 
 6. **Start the backend server**
    ```bash
-   python run.py
+   python app.py
    ```
    The backend server will run on `http://localhost:5000`
 
