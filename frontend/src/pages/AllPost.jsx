@@ -22,6 +22,7 @@ const Posts = () => {
   const [openCommentPostId, setOpenCommentPostId] = useState(null); // added
   const [commentContent, setCommentContent] = useState({}); // added
   const [userName, setUserName] = useState(null); // added
+  const [searchQuery, setSearchQuery] = useState(""); // added
 
   // New: control how many posts are visible (show first 10 by default)
   const [visibleCount, setVisibleCount] = useState(10);
@@ -177,8 +178,13 @@ const Posts = () => {
     return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
-  // derive visible posts for pagination/load-more
-  const visiblePosts = allPosts.slice(0, visibleCount);
+  // derive visible posts for pagination/load-more with search filter
+  const filteredPosts = allPosts.filter((post) =>
+    `${post.user.firstname} ${post.user.lastname}`
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+  const visiblePosts = filteredPosts.slice(0, visibleCount);
 
   return (
     <section className="bg-[#0a0a0a] py-16 px-4 md:px-8 min-h-screen animate-page-fade relative overflow-hidden">
@@ -266,183 +272,216 @@ const Posts = () => {
           </p>
         </div>
 
-        {/* Post List */}
-        <div className="space-y-6">
-          {visiblePosts.map((post, index) => {
-            const globalIndex = allPosts.findIndex((p) => p.id === post.id);
-            return (
-              <div
-                key={post.id}
-                className="bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 border border-zinc-800/50 rounded-2xl p-6 hover:bg-gradient-to-br hover:from-zinc-800/60 hover:to-zinc-900/60 hover:border-zinc-700 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 transform hover:translate-y-[-6px] animate-slide-up-stagger group"
-                style={{ animationDelay: `${0.2 + index * 0.15}s` }}
-                onMouseEnter={() => setHoveredPostId(post.id)}
-                onMouseLeave={() => setHoveredPostId(null)}
-              >
-                {/* Post Header */}
-                <div className="flex items-center gap-3 mb-4 relative">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold group-hover:scale-125 group-hover:shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300 relative overflow-hidden">
-                    <span className="relative z-10">
-                      {post.user.firstname.charAt(0)}
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-white font-semibold text-sm group-hover:text-cyan-400 transition-colors duration-300">
-                      {post.user.firstname} {post.user.lastname}
-                    </h4>
-                    <p className="text-zinc-500 text-xs group-hover:text-zinc-400 transition-colors duration-300 flex items-center gap-1">
-                      <span className="inline-block w-1 h-1 bg-zinc-500 rounded-full group-hover:bg-cyan-400 transition-colors duration-300"></span>
-                      {formatRelativeTime(post.created_at)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Post Content */}
-                <p className="text-gray-300 mb-6 leading-relaxed group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
-                  {post.content}
-                </p>
-
-                {/* Post Actions */}
-                <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50 group-hover:border-zinc-700/50 transition-all duration-300">
-                  <div className="flex items-center gap-8">
-                    {/* Like Button */}
-                    <button
-                      onClick={() => handleLike(post.id)}
-                      className="flex items-center gap-2 text-zinc-500 hover:text-pink-500 transition-all duration-300 text-sm group/btn hover:scale-125 relative"
-                    >
-                      <Heart
-                        size={18}
-                        className={`transition-all duration-300 ${post.liked_by_me ? "fill-pink-500 text-pink-500 scale-110 animate-heart-beat" : "group-hover:fill-pink-500"}`}
-                      />
-                      <span
-                        className={`transition-all duration-300 ${post.liked_by_me ? "text-pink-500 font-semibold" : ""}`}
-                      >
-                        {post.likes}
-                      </span>
-                      {post.liked_by_me && (
-                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-pink-400 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 animate-bounce">
-                          ❤️
-                        </span>
-                      )}
-                    </button>
-
-                    {/* Comment Button */}
-                    <button
-                      onClick={() =>
-                        setOpenCommentPostId(
-                          openCommentPostId === post.id ? null : post.id,
-                        )
-                      }
-                      className="flex items-center gap-2 text-zinc-500 hover:text-cyan-400 transition-all duration-300 text-sm group/comment hover:scale-125 relative"
-                    >
-                      <MessageSquare
-                        size={18}
-                        className="group-hover/comment:text-cyan-400 transition-all duration-300 group-hover/comment:rotate-12"
-                      />
-                      <span className="group-hover/comment:text-cyan-400 transition-colors duration-300">
-                        Comment
-                      </span>
-                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-cyan-400 opacity-0 group-hover/comment:opacity-100 transition-opacity duration-300 animate-bounce">
-                        💬
-                      </span>
-                    </button>
-
-                    {/* Delete Button */}
-                    <button
-                      onClick={() => handleDelete(post.id)}
-                      className="flex items-center gap-1 text-zinc-500 hover:text-red-500 transition-all duration-300 text-sm hover:scale-110"
-                    >
-                      🗑 Delete
-                    </button>
-                  </div>
-                </div>
-
-                {/* Post Index Badge */}
-                <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800/50 flex items-center justify-center text-xs text-zinc-400 group-hover:bg-purple-500/30 group-hover:text-purple-300 transition-all duration-300 opacity-0 group-hover:opacity-100">
-                  #{globalIndex + 1}
-                </div>
-
-                {/* Comment Section (below post) */}
-                {openCommentPostId === post.id && (
-                  <div className="mt-4 border-t border-zinc-800/60 pt-4 animate-fade-in-slow">
-                    <div className="flex items-center gap-3 mb-4">
-                      {/* <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                        {post.user.firstname.charAt(0)}
-                      </div> */}
-
-                      {/* comment input */}
-                      {isLoggedIn && <div className="flex-1 relative">
-                        <input
-                          type="text"
-                          placeholder="Write a comment..."
-                          value={commentContent[post.id] || ""}
-                          onChange={(e) =>
-                            handleCommentChange(post.id, e.target.value)
-                          }
-                          className="w-full bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-full px-4 py-2 pr-10 focus:outline-none focus:border-cyan-400/80 transition-all duration-300"
-                        />
-                        <button
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-all duration-300 hover:scale-110"
-                          title="Send"
-                          onClick={() => handleComment(post.id)}
-                        >
-                          ➤
-                        </button>
-                      </div>}
-                    </div>
-
-                    {/* Comments List */}
-                    <div className="space-y-4 pl-12">
-                      {post.comments && post.comments.length > 0 ? (
-                        post.comments.map((comment) => (
-                          <div
-                            key={comment.id}
-                            className="group flex gap-3 items-start bg-gradient-to-br from-zinc-900/60 to-zinc-950/60 border border-zinc-800/60 rounded-2xl px-4 py-3 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300"
-                          >
-                            {/* Avatar */}
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-                              {comment.user.firstname.charAt(0)}
-                            </div>
-
-                            {/* Content */}
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-cyan-400 font-semibold text-sm hover:underline cursor-pointer">
-                                  {comment.user.firstname}{" "}
-                                  {comment.user.lastname}
-                                </span>
-                                <span className="text-xs text-zinc-500">
-                                  {formatRelativeTime(comment.commented_at)}
-                                </span>
-                              </div>
-
-                              <p className="text-sm text-gray-300 leading-relaxed">
-                                {comment.content}
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-sm text-zinc-500 italic animate-fade-in-slow">
-                          Be the first to comment ✨
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+        {/* Search Bar */}
+        <div className="mb-8 animate-fade-in-slow">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search by username..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-2xl px-5 py-3 pr-12 focus:outline-none focus:border-cyan-400/80 focus:bg-white/10 focus:shadow-lg focus:shadow-cyan-500/10 transition-all duration-300"
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-lg">
+              🔍
+            </span>
+          </div>
+          {searchQuery && (
+            <p className="text-sm text-gray-400 mt-2">
+              Found {filteredPosts.length} post{filteredPosts.length !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
+        {/* No Results Message */}
+        {searchQuery && filteredPosts.length === 0 && (
+          <div className="text-center py-12 animate-fade-in-slow">
+            <p className="text-gray-400 text-lg mb-2">No posts found</p>
+            <p className="text-gray-500 text-sm">
+              Try searching for a different username
+            </p>
+          </div>
+        )}
+
+        {/* Post List */}
+        {filteredPosts.length > 0 && (
+          <div className="space-y-6">
+            {visiblePosts.map((post, index) => {
+              const globalIndex = filteredPosts.findIndex((p) => p.id === post.id);
+              return (
+                <div
+                  key={post.id}
+                  className="bg-gradient-to-br from-zinc-900/50 to-zinc-950/50 border border-zinc-800/50 rounded-2xl p-6 hover:bg-gradient-to-br hover:from-zinc-800/60 hover:to-zinc-900/60 hover:border-zinc-700 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 transform hover:translate-y-[-6px] animate-slide-up-stagger group"
+                  style={{ animationDelay: `${0.2 + index * 0.15}s` }}
+                  onMouseEnter={() => setHoveredPostId(post.id)}
+                  onMouseLeave={() => setHoveredPostId(null)}
+                >
+                  {/* Post Header */}
+                  <div className="flex items-center gap-3 mb-4 relative">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold group-hover:scale-125 group-hover:shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300 relative overflow-hidden">
+                      <span className="relative z-10">
+                        {post.user.firstname.charAt(0)}
+                      </span>
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-white font-semibold text-sm group-hover:text-cyan-400 transition-colors duration-300">
+                        {post.user.firstname} {post.user.lastname}
+                      </h4>
+                      <p className="text-zinc-500 text-xs group-hover:text-zinc-400 transition-colors duration-300 flex items-center gap-1">
+                        <span className="inline-block w-1 h-1 bg-zinc-500 rounded-full group-hover:bg-cyan-400 transition-colors duration-300"></span>
+                        {formatRelativeTime(post.created_at)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Post Content */}
+                  <p className="text-gray-300 mb-6 leading-relaxed group-hover:text-gray-100 transition-colors duration-300 text-sm md:text-base">
+                    {post.content}
+                  </p>
+
+                  {/* Post Actions */}
+                  <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50 group-hover:border-zinc-700/50 transition-all duration-300">
+                    <div className="flex items-center gap-8">
+                      {/* Like Button */}
+                      <button
+                        onClick={() => handleLike(post.id)}
+                        className="flex items-center gap-2 text-zinc-500 hover:text-pink-500 transition-all duration-300 text-sm group/btn hover:scale-125 relative"
+                      >
+                        <Heart
+                          size={18}
+                          className={`transition-all duration-300 ${post.liked_by_me ? "fill-pink-500 text-pink-500 scale-110 animate-heart-beat" : "group-hover:fill-pink-500"}`}
+                        />
+                        <span
+                          className={`transition-all duration-300 ${post.liked_by_me ? "text-pink-500 font-semibold" : ""}`}
+                        >
+                          {post.likes}
+                        </span>
+                        {post.liked_by_me && (
+                          <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-pink-400 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 animate-bounce">
+                            ❤️
+                          </span>
+                        )}
+                      </button>
+
+                      {/* Comment Button */}
+                      <button
+                        onClick={() =>
+                          setOpenCommentPostId(
+                            openCommentPostId === post.id ? null : post.id,
+                          )
+                        }
+                        className="flex items-center gap-2 text-zinc-500 hover:text-cyan-400 transition-all duration-300 text-sm group/comment hover:scale-125 relative"
+                      >
+                        <MessageSquare
+                          size={18}
+                          className="group-hover/comment:text-cyan-400 transition-all duration-300 group-hover/comment:rotate-12"
+                        />
+                        <span className="group-hover/comment:text-cyan-400 transition-colors duration-300">
+                          Comment
+                        </span>
+                        <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-cyan-400 opacity-0 group-hover/comment:opacity-100 transition-opacity duration-300 animate-bounce">
+                          💬
+                        </span>
+                      </button>
+
+                      {/* Delete Button */}
+                      <button
+                        onClick={() => handleDelete(post.id)}
+                        className="flex items-center gap-1 text-zinc-500 hover:text-red-500 transition-all duration-300 text-sm hover:scale-110"
+                      >
+                        🗑 Delete
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Post Index Badge */}
+                  <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800/50 flex items-center justify-center text-xs text-zinc-400 group-hover:bg-purple-500/30 group-hover:text-purple-300 transition-all duration-300 opacity-0 group-hover:opacity-100">
+                    #{globalIndex + 1}
+                  </div>
+
+                  {/* Comment Section (below post) */}
+                  {openCommentPostId === post.id && (
+                    <div className="mt-4 border-t border-zinc-800/60 pt-4 animate-fade-in-slow">
+                      <div className="flex items-center gap-3 mb-4">
+                        {/* <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                          {post.user.firstname.charAt(0)}
+                        </div> */}
+
+                        {/* comment input */}
+                        {isLoggedIn && <div className="flex-1 relative">
+                          <input
+                            type="text"
+                            placeholder="Write a comment..."
+                            value={commentContent[post.id] || ""}
+                            onChange={(e) =>
+                              handleCommentChange(post.id, e.target.value)
+                            }
+                            className="w-full bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-full px-4 py-2 pr-10 focus:outline-none focus:border-cyan-400/80 transition-all duration-300"
+                          />
+                          <button
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-all duration-300 hover:scale-110"
+                            title="Send"
+                            onClick={() => handleComment(post.id)}
+                          >
+                            ➤
+                          </button>
+                        </div>}
+                      </div>
+
+                      {/* Comments List */}
+                      <div className="space-y-4 pl-12">
+                        {post.comments && post.comments.length > 0 ? (
+                          post.comments.map((comment) => (
+                            <div
+                              key={comment.id}
+                              className="group flex gap-3 items-start bg-gradient-to-br from-zinc-900/60 to-zinc-950/60 border border-zinc-800/60 rounded-2xl px-4 py-3 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300"
+                            >
+                              {/* Avatar */}
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                                {comment.user.firstname.charAt(0)}
+                              </div>
+
+                              {/* Content */}
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-cyan-400 font-semibold text-sm hover:underline cursor-pointer">
+                                    {comment.user.firstname}{" "}
+                                    {comment.user.lastname}
+                                  </span>
+                                  <span className="text-xs text-zinc-500">
+                                    {formatRelativeTime(comment.commented_at)}
+                                  </span>
+                                </div>
+
+                                <p className="text-sm text-gray-300 leading-relaxed">
+                                  {comment.content}
+                                </p>
+                              </div>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm text-zinc-500 italic animate-fade-in-slow">
+                            Be the first to comment ✨
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* Load More Section */}
-        {allPosts.length > visibleCount && (
+        {filteredPosts.length > visibleCount && (
           <div
             className="text-center mt-12 animate-fade-in-slow"
             style={{ animationDelay: "1s" }}
           >
             <button
-              onClick={() => setVisibleCount(allPosts.length)} // show remaining posts
+              onClick={() => setVisibleCount(filteredPosts.length)}
               className="relative px-8 py-3 rounded-full font-semibold text-white border border-zinc-700 hover:border-cyan-500/50 transition-all duration-300 overflow-hidden group"
             >
               <span className="relative z-10 group-hover:text-cyan-300 transition-colors duration-300">
