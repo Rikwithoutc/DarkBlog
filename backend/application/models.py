@@ -38,6 +38,7 @@ class Comments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    commented_at = db.Column(db.DateTime, nullable=False, server_default=db.func.now())
 
     content = db.Column(db.Text, nullable=False)
 
