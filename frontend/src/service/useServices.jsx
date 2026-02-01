@@ -63,6 +63,15 @@ export const getAllPosts = async () => {
   return await response.json();
 };
 
+export const getAllPostWithoutAuth = async () => {
+  const response = await fetch(`${BACKEND_URL}/posts/view`, {
+    headers: {
+      credentials: "include",
+    },
+  });
+  return await response.json();
+}
+
 export const createPost = async (postData) => {
   try {
     const response = await fetch(`${BACKEND_URL}/create_post`, {  

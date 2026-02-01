@@ -9,7 +9,8 @@ import {
   getProfile,
   likePost,
   unlikePost,
-  setComment, // added
+  setComment,
+  getAllPostWithoutAuth, // added
 } from "../service/useServices";
 import toast from "react-hot-toast";
 
@@ -49,18 +50,27 @@ const Posts = () => {
   // fetch all post
   useEffect(() => {
     const fetchPosts = async () => {
-      try {
-        const posts = await getAllPosts();
-        console.log("Fetched posts:", posts);
-        if(!posts.msg){
-          setIsLoggedIn(true);
+      if (localStorage.getItem("accessToken")) {
+        try {
+          const posts = await getAllPosts();
+          console.log("Fetched posts:", posts);
+          if (!posts.msg) {
+            setIsLoggedIn(true);
+            setAllPosts(posts);
+          } else {
+            setIsLoggedIn(false);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      } else {
+        try {
+          const posts = await getAllPostWithoutAuth();
+          console.log("Fetched posts without auth:", posts);
           setAllPosts(posts);
+        } catch (err) {
+          console.error(err);
         }
-        else{
-          setIsLoggedIn(false);
-        }
-      } catch (err) {
-        console.error(err);
       }
     };
 
@@ -101,23 +111,27 @@ const Posts = () => {
   };
 
   const handleLike = async (postId) => {
-    const post = allPosts.find((p) => p.id === postId);
-    if (!post.liked_by_me) {
-      const likeResponse = await likePost(postId);
-      console.log("Like response:", likeResponse);
+    if (localStorage.getItem("accessToken")) {
+      const post = allPosts.find((p) => p.id === postId);
+      if (!post.liked_by_me) {
+        const likeResponse = await likePost(postId);
+        console.log("Like response:", likeResponse);
 
-      // fetch all posts again to update like count
-      const posts = await getAllPosts();
-      setAllPosts(posts);
+        // fetch all posts again to update like count
+        const posts = await getAllPosts();
+        setAllPosts(posts);
+      } else {
+        console.log("Post already liked by user.");
+
+        const unlikeResponse = await unlikePost(postId);
+        console.log("Unlike response:", unlikeResponse);
+
+        // fetch all posts again to update like count
+        const posts = await getAllPosts();
+        setAllPosts(posts);
+      }
     } else {
-      console.log("Post already liked by user.");
-
-      const unlikeResponse = await unlikePost(postId);
-      console.log("Unlike response:", unlikeResponse);
-
-      // fetch all posts again to update like count
-      const posts = await getAllPosts();
-      setAllPosts(posts);
+      toast.error("Please log in to like posts.");
     }
   };
 
@@ -352,10 +366,12 @@ const Posts = () => {
                 {openCommentPostId === post.id && (
                   <div className="mt-4 border-t border-zinc-800/60 pt-4 animate-fade-in-slow">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {/* <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
                         {post.user.firstname.charAt(0)}
-                      </div>
-                      <div className="flex-1 relative">
+                      </div> */}
+
+                      {/* comment input */}
+                      {isLoggedIn && <div className="flex-1 relative">
                         <input
                           type="text"
                           placeholder="Write a comment..."
@@ -372,9 +388,10 @@ const Posts = () => {
                         >
                           ➤
                         </button>
-                      </div>
+                      </div>}
                     </div>
 
+                    {/* Comments List */}
                     <div className="space-y-4 pl-12">
                       {post.comments && post.comments.length > 0 ? (
                         post.comments.map((comment) => (
@@ -391,7 +408,8 @@ const Posts = () => {
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-cyan-400 font-semibold text-sm hover:underline cursor-pointer">
-                                  {comment.user.firstname} {comment.user.lastname}
+                                  {comment.user.firstname}{" "}
+                                  {comment.user.lastname}
                                 </span>
                                 <span className="text-xs text-zinc-500">
                                   {formatRelativeTime(comment.commented_at)}
