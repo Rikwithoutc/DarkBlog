@@ -122,3 +122,43 @@ export const likePost = async (postId) => {
     console.error("Error during liking post:", error);
   }
 };
+
+export const unlikePost = async (postId) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/post/${postId}/unlike`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error unliking post:", errorData);
+      throw new Error(errorData.msg || "Failed to unlike post");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error during unliking post:", error);
+  }
+};
+
+export const setComment = async (postId, commentData) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/post/${postId}/comment`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+      body: JSON.stringify(commentData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error setting comment:", errorData);
+      throw new Error(errorData.msg || "Failed to set comment");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error during setting comment:", error);
+  }
+};

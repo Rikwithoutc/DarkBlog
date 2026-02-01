@@ -8,15 +8,18 @@ import {
   getAllPosts,
   getProfile,
   likePost,
+  unlikePost,
+  setComment, // added
 } from "../service/useServices";
 import toast from "react-hot-toast";
 
 const Posts = () => {
-  const [likedPosts, setLikedPosts] = useState({});
   const [hoveredPostId, setHoveredPostId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [allPosts, setAllPosts] = useState([]);
+  const [openCommentPostId, setOpenCommentPostId] = useState(null); // added
+  const [commentContent, setCommentContent] = useState({}); // added
 
   const handleChange = (e) => {
     setPostContent(e.target.value);
@@ -84,19 +87,67 @@ const Posts = () => {
     setAllPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
   };
 
-  const toggleLike = (postId) => {
-    console.log("Liked posts state:", likedPosts);
-    if (!likedPosts[postId]) {
-      const likePostApi = async () => {
-        // Call API to like the post
-        const likeResponse = await likePost(postId);
-        console.log("Like response:", likeResponse);
-      }
-      likePostApi();
+  const handleLike = async (postId) => {
+    const post = allPosts.find((p) => p.id === postId);
+    if (!post.liked_by_me) {
+      const likeResponse = await likePost(postId);
+      console.log("Like response:", likeResponse);
+
+      // fetch all posts again to update like count
+      const posts = await getAllPosts();
+      setAllPosts(posts);
+    } else {
+      console.log("Post already liked by user.");
+
+      const unlikeResponse = await unlikePost(postId);
+      console.log("Unlike response:", unlikeResponse);
+
+      // fetch all posts again to update like count
+      const posts = await getAllPosts();
+      setAllPosts(posts);
     }
-    else{
-      console.log("Post unliked:", postId);
+  };
+
+  const handleCommentChange = (postId, value) => {
+    setCommentContent((prev) => ({ ...prev, [postId]: value }));
+  };
+
+  const handleComment = async (postId) => {
+    try {
+      await setComment(postId, { content: commentContent[postId] || "" });
+      const posts = await getAllPosts();
+      setAllPosts(posts);
+      setCommentContent((prev) => ({ ...prev, [postId]: "" }));
+    } catch (err) {
+      console.error(err);
     }
+  };
+
+  // added: format timestamps to relative time
+  const formatRelativeTime = (input) => {
+    if (!input) return "just now";
+
+    // Force UTC if timezone missing
+    const date =
+      typeof input === "string" && !input.endsWith("Z")
+        ? new Date(input + "Z")
+        : new Date(input);
+
+    if (isNaN(date.getTime())) return "just now";
+
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+
+    if (seconds < 10) return "just now";
+    if (seconds < 60) return `${seconds} seconds ago`;
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes} minute${minutes !== 1 ? "s" : ""} ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours} hour${hours !== 1 ? "s" : ""} ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days} day${days !== 1 ? "s" : ""} ago`;
   };
 
   return (
@@ -153,26 +204,6 @@ const Posts = () => {
                   Post
                 </button>
               </div>
-
-              {/* <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
-                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                    🎨
-                  </span>
-                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                    📸
-                  </span>
-                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                    😊
-                  </span>
-                </div>
-                <button
-                  onClick={handlePost}
-                  className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
-                >
-                  Post
-                </button>
-              </div> */}
             </div>
           )}
 
@@ -229,7 +260,7 @@ const Posts = () => {
                   </h4>
                   <p className="text-zinc-500 text-xs group-hover:text-zinc-400 transition-colors duration-300 flex items-center gap-1">
                     <span className="inline-block w-1 h-1 bg-zinc-500 rounded-full group-hover:bg-cyan-400 transition-colors duration-300"></span>
-                    {post.created_at}
+                    {formatRelativeTime(post.created_at)}
                   </p>
                 </div>
               </div>
@@ -244,12 +275,12 @@ const Posts = () => {
                 <div className="flex items-center gap-8">
                   {/* Like Button */}
                   <button
-                    onClick={() => toggleLike(post.id)}
+                    onClick={() => handleLike(post.id)}
                     className="flex items-center gap-2 text-zinc-500 hover:text-pink-500 transition-all duration-300 text-sm group/btn hover:scale-125 relative"
                   >
                     <Heart
                       size={18}
-                      className={`transition-all duration-300 ${likedPosts[post.id] ? "fill-pink-500 text-pink-500 scale-110 animate-heart-beat" : "group-hover:fill-pink-500"}`}
+                      className={`transition-all duration-300 ${post.liked_by_me ? "fill-pink-500 text-pink-500 scale-110 animate-heart-beat" : "group-hover:fill-pink-500"}`}
                     />
                     <span
                       className={`transition-all duration-300 ${post.liked_by_me ? "text-pink-500 font-semibold" : ""}`}
@@ -264,7 +295,14 @@ const Posts = () => {
                   </button>
 
                   {/* Comment Button */}
-                  <button className="flex items-center gap-2 text-zinc-500 hover:text-cyan-400 transition-all duration-300 text-sm group/comment hover:scale-125 relative">
+                  <button
+                    onClick={() =>
+                      setOpenCommentPostId(
+                        openCommentPostId === post.id ? null : post.id,
+                      )
+                    }
+                    className="flex items-center gap-2 text-zinc-500 hover:text-cyan-400 transition-all duration-300 text-sm group/comment hover:scale-125 relative"
+                  >
                     <MessageSquare
                       size={18}
                       className="group-hover/comment:text-cyan-400 transition-all duration-300 group-hover/comment:rotate-12"
@@ -285,20 +323,77 @@ const Posts = () => {
                     🗑 Delete
                   </button>
                 </div>
-
-                {/* Share Button */}
-                <button className="text-zinc-500 hover:text-white transition-all duration-300 hover:scale-125 hover:rotate-12 relative group/share">
-                  <Share2 size={18} />
-                  <span className="absolute -top-8 right-0 text-xs text-gray-300 opacity-0 group-hover/share:opacity-100 transition-opacity duration-300 animate-bounce whitespace-nowrap">
-                    Share ✨
-                  </span>
-                </button>
               </div>
 
               {/* Post Index Badge */}
               <div className="absolute top-4 right-4 w-8 h-8 rounded-full bg-zinc-800/50 flex items-center justify-center text-xs text-zinc-400 group-hover:bg-purple-500/30 group-hover:text-purple-300 transition-all duration-300 opacity-0 group-hover:opacity-100">
                 #{index + 1}
               </div>
+
+              {/* Comment Section (below post) */}
+              {openCommentPostId === post.id && (
+                <div className="mt-4 border-t border-zinc-800/60 pt-4 animate-fade-in-slow">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {post.user.firstname.charAt(0)}
+                    </div>
+                    <div className="flex-1 relative">
+                      <input
+                        type="text"
+                        placeholder="Write a comment..."
+                        value={commentContent[post.id] || ""}
+                        onChange={(e) =>
+                          handleCommentChange(post.id, e.target.value)
+                        }
+                        className="w-full bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-full px-4 py-2 pr-10 focus:outline-none focus:border-cyan-400/80 transition-all duration-300"
+                      />
+                      <button
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-cyan-400 hover:text-cyan-300 transition-all duration-300 hover:scale-110"
+                        title="Send"
+                        onClick={() => handleComment(post.id)}
+                      >
+                        ➤
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 pl-12">
+                    {post.comments && post.comments.length > 0 ? (
+                      post.comments.map((comment) => (
+                        <div
+                          key={comment.id}
+                          className="group flex gap-3 items-start bg-gradient-to-br from-zinc-900/60 to-zinc-950/60 border border-zinc-800/60 rounded-2xl px-4 py-3 hover:border-cyan-500/40 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300"
+                        >
+                          {/* Avatar */}
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+                            {comment.user.firstname.charAt(0)}
+                          </div>
+
+                          {/* Content */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-cyan-400 font-semibold text-sm hover:underline cursor-pointer">
+                                {comment.user.firstname}
+                              </span>
+                              <span className="text-xs text-zinc-500">
+                                {formatRelativeTime(comment.commented_at)}
+                              </span>
+                            </div>
+
+                            <p className="text-sm text-gray-300 leading-relaxed">
+                              {comment.content}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-zinc-500 italic animate-fade-in-slow">
+                        Be the first to comment ✨
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
