@@ -122,7 +122,8 @@ def get_posts():
                             "lastname": comment.user.lastname,
                             "email": comment.user.email
                         },
-                        "content": comment.content
+                        "content": comment.content,
+                        "commented_at": comment.commented_at.isoformat()
                     } for comment in post.comments
             ],
             
@@ -194,7 +195,8 @@ def comment_post(post_id):
     comment = Comments(
         post_id = post_id,
         user_id = current_user.id,
-        content = content
+        content = content,
+        commented_at = db.func.now()
     )
 
     db.session.add(comment)
