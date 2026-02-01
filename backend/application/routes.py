@@ -225,7 +225,7 @@ def like_post(post_id):
         post_id = post_id
     )
 
-    post.likes += 1
+    # post.likes += 1
 
     db.session.add(like)
     db.session.commit()
