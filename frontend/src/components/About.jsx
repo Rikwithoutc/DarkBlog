@@ -55,16 +55,16 @@ const About = () => {
         {/* Title */}
         <motion.h2
           variants={itemUp}
-          className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent"
+          className="text-4xl py-3 md:text-5xl font-bold mb-8 bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent"
         >
-          About DarkBlog
+          About Bloggy
         </motion.h2>
 
         {/* Intro */}
         <motion.div className="space-y-6 text-lg leading-relaxed">
           <motion.p variants={itemUp}>
             <span className="text-white font-semibold">
-              Welcome to DarkBlog,
+              Welcome to Bloggy,
             </span>{" "}
             a sanctuary for ideas and stories. We believe that content shines
             brightest against a dark canvas. Our platform is designed to be
@@ -73,7 +73,7 @@ const About = () => {
 
           <motion.p variants={itemUp}>
             Whether you're a developer sharing snippets, a poet weaving verses,
-            or a storyteller recounting adventures, DarkBlog provides the perfect
+            or a storyteller recounting adventures, Bloggy provides the perfect
             atmosphere for your expression.
           </motion.p>
         </motion.div>
