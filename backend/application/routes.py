@@ -130,7 +130,45 @@ def get_posts():
             "content": post.content
         }
         for post in posts
-    ]
+    ][::-1]
+
+    return jsonify(posts_list), 200
+
+
+
+@app.route('/posts/view', methods=["GET"])
+def view_posts():
+    posts = Post.query.all()
+    posts_list = [
+        {
+            "id": str(post.id),
+            "created_at": post.created_at.isoformat(), 
+            "likes": Likes.query.filter_by(post_id=post.id).count(),
+            "user": {
+                "id": str(post.user.id),
+                "firstname": post.user.firstname,
+                "lastname": post.user.lastname,
+                "email": post.user.email,
+            },
+
+            "comments": [
+                    {
+                        "id": str(comment.id),
+                        "user" : {
+                            "id": str(comment.user.id),
+                            "firstname": comment.user.firstname,
+                            "lastname": comment.user.lastname,
+                            "email": comment.user.email
+                        },
+                        "content": comment.content,
+                        "commented_at": comment.commented_at.isoformat()
+                    } for comment in post.comments
+            ],
+            
+            "content": post.content
+        }
+        for post in posts
+    ][::-1]
 
     return jsonify(posts_list), 200
 

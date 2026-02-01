@@ -1,3 +1,8 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+import os
+
 from flask import Flask
 from application.config import LocalDevelopmentConfig
 from application.database import db
@@ -20,7 +25,7 @@ app = create_app()
 
 CORS(app,
      supports_credentials=True,
-     origins=["http://localhost:5173"])
+     origins=[os.getenv("FRONTEND_URL") or "http://localhost:5173"])
 
 from application.routes import *
 
