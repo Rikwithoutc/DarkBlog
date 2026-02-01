@@ -104,7 +104,7 @@ def get_posts():
         {
             "id": str(post.id),
             "created_at": post.created_at.isoformat(), 
-            "likes": post.likes,
+            "likes": Likes.query.filter_by(post_id=post.id).count(),
             "liked_by_me" : Likes.query.filter_by(user_id=current_user.id, post_id=post.id).first() is not None,
             "user": {
                 "id": str(post.user.id),
@@ -146,8 +146,7 @@ def create_post():
     post = Post(
         user_id=current_user.id,
         created_at = db.func.now(),
-        content=content,
-        likes=0
+        content=content
     )
     db.session.add(post)
     db.session.commit()
@@ -155,7 +154,7 @@ def create_post():
     return jsonify(
         id=str(post.id),
         user_id=str(post.user_id),
-        likes=str(post.likes),
+        likes=str(Likes.query.filter_by(post_id=post.id).count()),
         created_at=str(post.created_at),
         content=post.content
     ), 201
@@ -206,7 +205,7 @@ def comment_post(post_id):
         post_id = str(comment.post_id),
         user_id = str(comment.user_id),
         content = comment.content
-    )
+    ), 201
 
 @app.route('/post/<int:post_id>/like', methods=["POST"])
 @jwt_required()
@@ -217,7 +216,7 @@ def like_post(post_id):
     
     existing_like = Likes.query.filter_by(user_id=current_user.id, post_id=post_id).first()
     if existing_like:
-        return jsonify(message="You have already liked this post"), 400
+        return jsonify(message="You have already liked this post"), 409
     
     like = Likes(
         user_id = current_user.id,
@@ -230,3 +229,22 @@ def like_post(post_id):
     db.session.commit()
 
     return jsonify(message="Post liked successfully"), 200
+
+
+@app.route('/post/<int:post_id>/unlike', methods=["POST"])
+@jwt_required()
+def unlike_post(post_id):
+    post = Post.query.get(post_id)
+
+    if not post:
+        return jsonify(message="Post not found"), 404
+    
+    existing_like = Likes.query.filter_by(user_id=current_user.id, post_id=post.id).first()
+
+    if not existing_like:
+        return jsonify(message="You have not liked this post"), 409
+    
+    db.session.delete()
+    db.session.commit()
+
+    return jsonify(message="Post unliked successfully"), 200
