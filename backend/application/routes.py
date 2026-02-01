@@ -246,7 +246,7 @@ def unlike_post(post_id):
     if not existing_like:
         return jsonify(message="You have not liked this post"), 409
     
-    db.session.delete()
+    db.session.delete(existing_like)
     db.session.commit()
 
     return jsonify(message="Post unliked successfully"), 200

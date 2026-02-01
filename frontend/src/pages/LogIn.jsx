@@ -159,7 +159,7 @@ const LoginPage = ({ onBack }) => {
               style={{ animationDelay: "0.5s" }}
             >
               <LogIn size={20} />
-              Sign In
+               Log In
             </button>
           </form>
 
