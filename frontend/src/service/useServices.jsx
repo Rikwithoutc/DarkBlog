@@ -102,3 +102,23 @@ export const deletePost = async (postId) => {
     console.error("Error during post deletion:", error);
   }
 };
+
+
+export const likePost = async (postId) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/post/${postId}/like`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error liking post:", errorData);
+      throw new Error(errorData.msg || "Failed to like post");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error during liking post:", error);
+  }
+};

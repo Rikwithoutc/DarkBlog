@@ -2,14 +2,19 @@ import React, { useEffect, useState } from "react";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
-import { createPost, deletePost, getAllPosts, getProfile } from "../service/useServices";
+import {
+  createPost,
+  deletePost,
+  getAllPosts,
+  getProfile,
+  likePost,
+} from "../service/useServices";
 import toast from "react-hot-toast";
 
 const Posts = () => {
   const [likedPosts, setLikedPosts] = useState({});
   const [hoveredPostId, setHoveredPostId] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isPostInputFocused, setIsPostInputFocused] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [allPosts, setAllPosts] = useState([]);
 
@@ -32,7 +37,6 @@ const Posts = () => {
 
     // Clear the input after posting
     setPostContent("");
-    setIsPostInputFocused(false);
   };
 
   // fetch all post
@@ -78,13 +82,21 @@ const Posts = () => {
 
     // Update the local state to remove the deleted post
     setAllPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
-  }
+  };
 
   const toggleLike = (postId) => {
-    setLikedPosts((prev) => ({
-      ...prev,
-      [postId]: !prev[postId],
-    }));
+    console.log("Liked posts state:", likedPosts);
+    if (!likedPosts[postId]) {
+      const likePostApi = async () => {
+        // Call API to like the post
+        const likeResponse = await likePost(postId);
+        console.log("Like response:", likeResponse);
+      }
+      likePostApi();
+    }
+    else{
+      console.log("Post unliked:", postId);
+    }
   };
 
   return (
@@ -116,55 +128,51 @@ const Posts = () => {
                 </div>
                 <textarea
                   placeholder="What's on your mind?"
-                  onFocus={() => setIsPostInputFocused(true)}
-                  onBlur={() => setIsPostInputFocused(false)}
                   value={postContent}
                   onChange={handleChange}
-                  className={`flex-1 bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-2xl px-5 py-4 focus:outline-none focus:border-purple-500/80 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all duration-300 text-base resize-none ${isPostInputFocused ? "min-h-24" : "min-h-12"}`}
+                  className={`flex-1 bg-white/5 text-gray-200 placeholder-gray-500 border border-zinc-700/50 rounded-2xl px-5 py-4 focus:outline-none focus:border-purple-500/80 focus:bg-white/10 focus:shadow-lg focus:shadow-purple-500/10 transition-all duration-300 text-base resize-none min-h-24`}
                 />
               </div>
-              {isPostInputFocused && (
-                <div className="flex items-center justify-between animate-fade-in-slow">
-                  <div className="flex items-center gap-3 text-gray-400">
-                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
-                      🎨
-                    </button>
-                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
-                      📸
-                    </button>
-                    <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
-                      😊
-                    </button>
-                  </div>
-                  <button
-                    onClick={handlePost}
-                    className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
-                  >
-                    Post
+
+              <div className="flex items-center justify-between animate-fade-in-slow">
+                <div className="flex items-center gap-3 text-gray-400">
+                  <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                    🎨
+                  </button>
+                  <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                    📸
+                  </button>
+                  <button className="text-lg hover:text-purple-400 transition-colors duration-300 hover:scale-125">
+                    😊
                   </button>
                 </div>
-              )}
-              {!isPostInputFocused && (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-gray-400 text-sm">
-                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                      🎨
-                    </span>
-                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                      📸
-                    </span>
-                    <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
-                      😊
-                    </span>
-                  </div>
-                  <button
-                    onClick={handlePost}
-                    className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
-                  >
-                    Post
-                  </button>
+                <button
+                  onClick={handlePost}
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
+                >
+                  Post
+                </button>
+              </div>
+
+              {/* <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gray-400 text-sm">
+                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                    🎨
+                  </span>
+                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                    📸
+                  </span>
+                  <span className="text-lg hover:scale-125 transition-transform cursor-pointer">
+                    😊
+                  </span>
                 </div>
-              )}
+                <button
+                  onClick={handlePost}
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
+                >
+                  Post
+                </button>
+              </div> */}
             </div>
           )}
 
@@ -244,11 +252,11 @@ const Posts = () => {
                       className={`transition-all duration-300 ${likedPosts[post.id] ? "fill-pink-500 text-pink-500 scale-110 animate-heart-beat" : "group-hover:fill-pink-500"}`}
                     />
                     <span
-                      className={`transition-all duration-300 ${likedPosts[post.id] ? "text-pink-500 font-semibold" : ""}`}
+                      className={`transition-all duration-300 ${post.liked_by_me ? "text-pink-500 font-semibold" : ""}`}
                     >
-                      {likedPosts[post.id] ? "2" : "1"}
+                      {post.likes}
                     </span>
-                    {likedPosts[post.id] && (
+                    {post.liked_by_me && (
                       <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-pink-400 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300 animate-bounce">
                         ❤️
                       </span>
