@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Heart, MessageSquare, Share2 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
-import { createPost, getAllPosts, getProfile } from "../service/useServices";
+import { createPost, deletePost, getAllPosts, getProfile } from "../service/useServices";
+import toast from "react-hot-toast";
 
 const Posts = () => {
   const [likedPosts, setLikedPosts] = useState({});
@@ -20,9 +21,15 @@ const Posts = () => {
   // add post
   const handlePost = async () => {
     console.log("Posting content:", postContent);
+
     // Here you would typically call a service to create the post
     const postData = await createPost({ content: postContent });
     console.log("Post created:", postData);
+
+    // fetch all posts again to include the new post
+    const posts = await getAllPosts();
+    setAllPosts(posts);
+
     // Clear the input after posting
     setPostContent("");
     setIsPostInputFocused(false);
@@ -62,7 +69,16 @@ const Posts = () => {
     fetchProfile();
   }, []);
 
-  
+  // handle delete post
+  const handleDelete = async (postId) => {
+    console.log("Delete post with ID:", postId);
+    // Here you would typically call a service to delete the post
+    const deleteMessage = await deletePost(postId);
+    toast.success(deleteMessage.msg || "Post deleted successfully!");
+
+    // Update the local state to remove the deleted post
+    setAllPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+  }
 
   const toggleLike = (postId) => {
     setLikedPosts((prev) => ({
@@ -120,7 +136,10 @@ const Posts = () => {
                       😊
                     </button>
                   </div>
-                  <button className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95">
+                  <button
+                    onClick={handlePost}
+                    className="px-8 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold transition-all duration-300 shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-105 active:scale-95"
+                  >
                     Post
                   </button>
                 </div>
@@ -191,16 +210,18 @@ const Posts = () => {
               {/* Post Header */}
               <div className="flex items-center gap-3 mb-4 relative">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold group-hover:scale-125 group-hover:shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300 relative overflow-hidden">
-                  <span className="relative z-10">{post.user.firstName}</span>
+                  <span className="relative z-10">
+                    {post.user.firstname.charAt(0)}
+                  </span>
                   <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
                 <div className="flex-1">
                   <h4 className="text-white font-semibold text-sm group-hover:text-cyan-400 transition-colors duration-300">
-                    {post.user.firstName} {post.user.lastName}
+                    {post.user.firstname} {post.user.lastname}
                   </h4>
                   <p className="text-zinc-500 text-xs group-hover:text-zinc-400 transition-colors duration-300 flex items-center gap-1">
                     <span className="inline-block w-1 h-1 bg-zinc-500 rounded-full group-hover:bg-cyan-400 transition-colors duration-300"></span>
-                    {post.createdAt}
+                    {post.created_at}
                   </p>
                 </div>
               </div>
@@ -246,6 +267,14 @@ const Posts = () => {
                     <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs text-cyan-400 opacity-0 group-hover/comment:opacity-100 transition-opacity duration-300 animate-bounce">
                       💬
                     </span>
+                  </button>
+
+                  {/* Delete Button */}
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    className="flex items-center gap-1 text-zinc-500 hover:text-red-500 transition-all duration-300 text-sm hover:scale-110"
+                  >
+                    🗑 Delete
                   </button>
                 </div>
 

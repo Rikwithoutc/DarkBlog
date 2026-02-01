@@ -57,6 +57,7 @@ export const getAllPosts = async () => {
   const response = await fetch(`${BACKEND_URL}/posts`, {
     headers: {
       Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      credentials: "include",
     },
   });
   return await response.json();
@@ -80,5 +81,24 @@ export const createPost = async (postData) => {
     return await response.json();
   } catch (error) {
     console.error("Error during post creation:", error);
+  }
+};
+
+export const deletePost = async (postId) => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/delete_post/${postId}`, {    
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,   
+      },
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error("Error deleting post:", errorData);
+      throw new Error(errorData.msg || "Failed to delete post");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error during post deletion:", error);
   }
 };
